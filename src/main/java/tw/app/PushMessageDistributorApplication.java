@@ -11,38 +11,42 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.Properties;
 
 public class PushMessageDistributorApplication {
 
-	private final static String TOPIC = "distributor";
-	private final static String BOOTSTRAP_SERVERS = "localhost:9092";
+	final static String consumerPropsFile = "consumer.properties";
 	private final static Logger LOGGER = LoggerFactory.getLogger(PushMessageDistributorApplication.class);
 
-	private static Properties propsConsumer = setConsumerProps();
-	private static Consumer<Long, String> consumer = new KafkaConsumer<>(propsConsumer);
+	private static String TOPIC;
+	private static InputStream inputStream;
+	private static Consumer<Long, String> consumer;
 
-	private static Properties setConsumerProps(){
-		Properties properties = new Properties();
-		properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-		properties.put(ConsumerConfig.GROUP_ID_CONFIG, "Distributor");
-		properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
-		properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-		properties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 10);
-		properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-		properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-		return properties;
+	static {
+		try {
+			Properties properties = new Properties();
+			try{
+				inputStream = PushMessageDistributorApplication.class.getClassLoader().getResourceAsStream(consumerPropsFile);
+				properties.load(inputStream);
+				TOPIC = properties.getProperty("TOPIC");
+			}catch(IOException e){
+				e.printStackTrace();
+			}finally {
+				inputStream.close();
+			}
+			properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getProperty("BOOTSTRAP_SERVERS"));
+			properties.put(ConsumerConfig.GROUP_ID_CONFIG, properties.getProperty("GROUP_ID"));
+			properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
+			properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+			consumer = new KafkaConsumer<>(properties);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
-
-
-//	private static Consumer<Long, String> createConsumer() {
-//		// Subscribe to the topic.
-//		consumer.subscribe(Collections.singletonList(TOPIC));
-//		return consumer;
-//	}
 	public static void main(String[] args) {
 		LOGGER.info("===========   Main is running, calling runConsumer()  ================");
 		runConsumer();
