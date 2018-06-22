@@ -23,61 +23,43 @@ public class PushMessageDistributorApplication {
 
 	private static String TOPIC;
 	private static InputStream inputStream;
-	private static Consumer<Long, String> consumer;
+	private static Properties properties = new Properties();
 
 	static {
 		try {
-			Properties properties = new Properties();
-			try{
-				inputStream = PushMessageDistributorApplication.class.getClassLoader().getResourceAsStream(consumerPropsFile);
-				properties.load(inputStream);
-				TOPIC = properties.getProperty("TOPIC");
-			}catch(IOException e){
-				e.printStackTrace();
-			}finally {
-				inputStream.close();
-			}
+			inputStream = PushMessageDistributorApplication.class.getClassLoader().getResourceAsStream(consumerPropsFile);
+			properties.load(inputStream);
+			// Set TOPIC
+			TOPIC = properties.getProperty("TOPIC");
+			// Close inputStream
+			inputStream.close();
+
+			// Set ConsumerConfig from consumer properties
 			properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getProperty("BOOTSTRAP_SERVERS"));
 			properties.put(ConsumerConfig.GROUP_ID_CONFIG, properties.getProperty("GROUP_ID"));
 			properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
 			properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-			consumer = new KafkaConsumer<>(properties);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
+	private static Consumer<Long, String> consumer = new KafkaConsumer<>(properties);
 
 	public static void main(String[] args) {
-		LOGGER.info("===========   Main is running, calling runConsumer()  ================");
 		runConsumer();
-		LOGGER.info("===========  Main execution done  ================ ");
 	}
 
 	static void runConsumer() {
-
-		final int giveUp = 100;
-		int noRecordsCount = 0;
-
-		LOGGER.info(" Subcribing TOPIC  ");
+		// Subcribe Topic to consumer
 		consumer.subscribe(Collections.singletonList(TOPIC));
-		LOGGER.info("/////////// Subcribed   //////////////////////");
+
+		// Listen to consumer for coming message to log
 		while (true) {
-			final ConsumerRecords<Long, String> consumerRecords = consumer.poll(1000);
-
-			LOGGER.info("consumerRecords.count = {} ", consumerRecords.count());
-			if (consumerRecords.count()==0) {
-				noRecordsCount++;
-				if (noRecordsCount > giveUp) break;
-				else continue;
-			}
-
-			LOGGER.info("===== foreach ===== ");
+			final ConsumerRecords<Long, String> consumerRecords = consumer.poll(10);
 			consumerRecords.forEach(record -> {
-				LOGGER.info("Received Message { key: {} , value: {} , partition: {} ", record.key(), record.value(), record.partition());
+				LOGGER.info("Received Message { key: {} , value: {} , partition: {} }", record.key(), record.value(), record.partition());
 			});
-
 			consumer.commitAsync();
 		}
-		consumer.close();
 	}
 }
