@@ -27,16 +27,17 @@ public class PushMessageDistributorApplication {
 
 	static {
 		try {
+			Properties propsInFile = new Properties();
 			inputStream = PushMessageDistributorApplication.class.getClassLoader().getResourceAsStream(consumerPropsFile);
-			properties.load(inputStream);
+			propsInFile.load(inputStream);
 			// Set TOPIC
-			TOPIC = properties.getProperty("TOPIC");
+			TOPIC = propsInFile.getProperty("TOPIC");
 			// Close inputStream
 			inputStream.close();
 
 			// Set ConsumerConfig from consumer properties
-			properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, properties.getProperty("BOOTSTRAP_SERVERS"));
-			properties.put(ConsumerConfig.GROUP_ID_CONFIG, properties.getProperty("GROUP_ID"));
+			properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, propsInFile.getProperty("BOOTSTRAP_SERVERS"));
+			properties.put(ConsumerConfig.GROUP_ID_CONFIG, propsInFile.getProperty("GROUP_ID"));
 			properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
 			properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		} catch (IOException e) {
