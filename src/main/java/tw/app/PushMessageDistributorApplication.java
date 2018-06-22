@@ -1,9 +1,10 @@
 package tw.app;
 
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.kafka.clients.consumer.*;
 
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -55,11 +57,31 @@ public class PushMessageDistributorApplication {
 		consumer.subscribe(Collections.singletonList(TOPIC));
 
 		// Listen to consumer for coming message to log
+		Gson gson = new Gson();
+		JsonParser parser = new JsonParser();
+		String originData, topic, sender, text;
+		boolean urgent;
+		JsonElement deData;
+
 		while (true) {
 			final ConsumerRecords<Long, String> consumerRecords = consumer.poll(10);
-			consumerRecords.forEach(record -> {
-				LOGGER.info("Received Message { key: {} , value: {} , partition: {} }", record.key(), record.value(), record.partition());
-			});
+			for (ConsumerRecord<Long, String> record : consumerRecords) {
+				originData = record.value();
+				deData = parser.parse(originData);
+
+				if(deData.isJsonObject()) {
+					JsonObject jsonObj = deData.getAsJsonObject();
+					// Data Assignment
+					topic = gson.fromJson(jsonObj.get("topic"), String.class);
+					sender = gson.fromJson(jsonObj.get("sender"), String.class);
+					text = gson.fromJson(jsonObj.get("text"), String.class);
+					urgent = gson.fromJson(jsonObj.get("urgent"), boolean.class);
+					Instant sendTime = gson.fromJson(jsonObj.get("sentTime"), Instant.class);
+
+					LOGGER.info("[{} - PushMessage : Sender: {} , Topic: {} , Urgent: {} , Text: {} ",
+							sendTime, sender, topic, urgent, text);
+				}
+			}
 			consumer.commitAsync();
 		}
 	}
