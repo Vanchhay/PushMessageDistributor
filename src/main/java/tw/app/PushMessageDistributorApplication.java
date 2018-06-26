@@ -62,7 +62,7 @@ public class PushMessageDistributorApplication {
 			final ConsumerRecords<Long, String> consumerRecords = consumer.poll(10);
 			PushMessage pm;
 			for (ConsumerRecord<Long, String> record : consumerRecords) {
-					pm = gson.fromJson(record.value(), PushMessage.class);
+					pm = gson.fromJson(""+record.value(), PushMessage.class);
 					LOGGER.info("[{}] - PushMessage : Sender: {} , Topic: {} , Urgent: {} , Text: {}",
 							pm.getSendTime(), pm.getSender(), pm.getTopic(), pm.getUrgent(), pm.getText());
 				try {
@@ -85,7 +85,6 @@ public class PushMessageDistributorApplication {
 		PushMessage pm = gson.fromJson(json, PushMessage.class);
 
 		final String fileName = LOG_DIR + pm.getTopic().trim().toLowerCase() + ".log";
-		boolean logFile = new File(fileName).exists();
 
 		// If directory log dir not exist
 		if (!logDir_exist) {
@@ -96,12 +95,9 @@ public class PushMessageDistributorApplication {
 		fw = new FileWriter(fileName, true);
 		bw = new BufferedWriter(fw);
 
-		if (logFile)
-			bw.append("[ " + pm.getSendTime() + " ] => "+ json);
-		else
-			bw.write("[ " + pm.getSendTime() +" ] => "+ json);
-
+		bw.write("[ " + pm.getSendTime() + " ] => "+ json);
 		bw.newLine();
+
 		bw.close();
 	}
 }
