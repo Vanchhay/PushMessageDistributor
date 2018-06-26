@@ -8,8 +8,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.text.resources.iw.FormatData_iw_IL;
 
 import java.io.*;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -75,23 +77,31 @@ public class PushMessageDistributorApplication {
 
 	static void writeToReadableFile(String json) throws IOException{
 
+		final String PROJECT_DIR = System.getProperty("user.dir");
+		final String LOG_DIR = PROJECT_DIR + "\\logPushMessage\\";
+		boolean logDir_exist = new File(LOG_DIR).exists();
+
 		Gson gson = new Gson();
 		PushMessage pm = gson.fromJson(json, PushMessage.class);
 
-		String fileName = "C:\\Users\\vanchhay14\\IdeaProjects\\PushMessageDistributor\\logPushMessage\\" + pm.getTopic().trim().toLowerCase() + ".log";
+		final String fileName = LOG_DIR + pm.getTopic().trim().toLowerCase() + ".log";
+		boolean logFile = new File(fileName).exists();
 
-		File tmpDir = new File(fileName);
-		boolean exists = tmpDir.exists();
+		// If directory log dir not exist
+		if (!logDir_exist) {
+			File projectDir = new File(LOG_DIR);
+			projectDir.mkdir();
+		}
 
 		fw = new FileWriter(fileName, true);
 		bw = new BufferedWriter(fw);
 
-		if (exists){
+		if (logFile)
 			bw.append("[ " + pm.getSendTime() + " ] => "+ json);
-			bw.newLine();
-		}else {
+		else
 			bw.write("[ " + pm.getSendTime() +" ] => "+ json);
-		}
+
+		bw.newLine();
 		bw.close();
 	}
 }
