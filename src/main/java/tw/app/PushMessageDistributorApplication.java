@@ -12,8 +12,7 @@ import sun.text.resources.iw.FormatData_iw_IL;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Collections;
-import java.util.Properties;
+import java.util.*;
 
 public class PushMessageDistributorApplication {
 
@@ -53,9 +52,9 @@ public class PushMessageDistributorApplication {
 	}
 
 	static void runConsumer() {
+		List<String> topics = Arrays.asList("topic1","topic2","topic3","topic4","topic5","topic6","topic7","topic8","topic9","topic10");
 		// Subcribe Topic to consumer
-		consumer.subscribe(Collections.singletonList(TOPIC));
-
+		consumer.subscribe(topics);
 		// Listen to consumer for coming message to log
 		Gson gson = new Gson();
 		while (true) {
