@@ -47,4 +47,14 @@ public class PushMessage {
 	public Instant getSendTime(){
 		return this.sendTime;
 	}
+
+	public String toString() {
+		return "{" +
+				"\"sender\":\" " + this.getSender() + "\" , " +
+				"\"topic\":\" " + this.getTopic() + "\" , " +
+				"\"text\":\" " + this.getText() + "\" , " +
+				"\"urgent\":\" " + this.getUrgent() + "\" , " +
+				"\"sendTime\":\" " + this.getSendTime() + "\" , " +
+				"}";
+	}
 }
