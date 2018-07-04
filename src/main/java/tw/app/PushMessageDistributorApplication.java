@@ -3,6 +3,7 @@ package tw.app;
 import com.google.gson.Gson;
 import org.apache.kafka.clients.consumer.*;
 
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
@@ -83,28 +84,31 @@ public class PushMessageDistributorApplication {
 		PushMessage pm;
 
 		while (true) {
-			final ConsumerRecords<Long, String> consumerRecords = consumer.poll(10000);
-			for (ConsumerRecord<Long, String> record : consumerRecords) {
-				pm = gson.fromJson(record.value(), PushMessage.class);
 
-				LOGGER.info("Start {}", pm.getTopic());
-				try{
-					hmap.get(pm.getTopic()).write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
-					hmap.get(pm.getTopic()).newLine();
-				}catch(IOException e){
-					e.printStackTrace();
+			ConsumerRecords<Long, String> records = consumer.poll(10000);
+			for (TopicPartition tp : records.partitions()) {
+				List<ConsumerRecord<Long, String>> partRecords = records.records(tp);
+				for (ConsumerRecord<Long, String> record : partRecords) {
+					pm = gson.fromJson(record.value(), PushMessage.class);
+
+					LOGGER.info("Start {}", pm.getTopic());
+					try{
+						hmap.get(pm.getTopic()).write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						hmap.get(pm.getTopic()).newLine();
+					}catch(IOException e){
+						e.printStackTrace();
+					}
+					LOGGER.info("Finished {}", pm.getSendTime());
 				}
-				LOGGER.info("Finished {}", pm.getSendTime());
-			}
-			for (String topic: topics ) {
-				try{
-					hmap.get(topic).flush();
-				}catch(IOException e){
-					e.printStackTrace();
+				for (String topic: topics ) {
+					try{
+						hmap.get(topic).flush();
+					}catch(IOException e){
+						e.printStackTrace();
+					}
 				}
+				consumer.commitAsync();
 			}
-			LOGGER.info(" === COMMITING ====");
-			consumer.commitAsync();
 		}
 	}
 }
