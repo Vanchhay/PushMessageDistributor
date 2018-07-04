@@ -88,6 +88,19 @@ public class PushMessageDistributorApplication {
 		f9 = new FileWriter(LOG_DIR + "topic9.log", true);
 		f10 = new FileWriter(LOG_DIR + "topic10.log", true);
 
+		BufferedWriter bw1 = new BufferedWriter(f1);
+		BufferedWriter bw2 = new BufferedWriter(f2);
+		BufferedWriter bw3 = new BufferedWriter(f3);
+		BufferedWriter bw4 = new BufferedWriter(f4);
+		BufferedWriter bw5 = new BufferedWriter(f5);
+		BufferedWriter bw6 = new BufferedWriter(f6);
+		BufferedWriter bw7 = new BufferedWriter(f7);
+		BufferedWriter bw8 = new BufferedWriter(f8);
+		BufferedWriter bw9 = new BufferedWriter(f9);
+		BufferedWriter bw10 = new BufferedWriter(f10);
+
+
+
 		// Listen to consumer for coming message to log
 		Gson gson = new Gson();
 		PushMessage pm;
@@ -99,42 +112,49 @@ public class PushMessageDistributorApplication {
 				pm = gson.fromJson(record.value(), PushMessage.class);
 //				LOGGER.info(""+record.partition());
 
+				LOGGER.info("Start {}", pm.getTopic());
 				switch (pm.topic) {
 					case "topic1":
-						bw = new BufferedWriter(f1);
+						bw1.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw1.newLine();
 						break;
 					case "topic2":
-						bw = new BufferedWriter(f2);
+						bw2.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw2.newLine();
 						break;
 					case "topic3":
-						bw = new BufferedWriter(f3);
+						bw3.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw3.newLine();
 						break;
 					case "topic4":
-						bw = new BufferedWriter(f4);
+						bw4.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw4.newLine();
 						break;
 					case "topic5":
-						bw = new BufferedWriter(f5);
+						bw5.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw5.newLine();
 						break;
 					case "topic6":
-						bw = new BufferedWriter(f6);
+						bw6.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw6.newLine();
 						break;
 					case "topic7":
-						bw = new BufferedWriter(f7);
+						bw7.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw7.newLine();
 						break;
 					case "topic8":
-						bw = new BufferedWriter(f8);
+						bw8.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw8.newLine();
 						break;
 					case "topic9":
-						bw = new BufferedWriter(f9);
+						bw9.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw9.newLine();
 						break;
 					case "topic10":
-						bw = new BufferedWriter(f10);
+						bw10.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
+						bw10.newLine();
 						break;
 				}
-				LOGGER.info("Start {}", pm.getTopic());
-				bw.write("[ " + pm.getSendTime() + " ] => "+ pm.toString());
-				bw.newLine();
-				bw.flush();
 				LOGGER.info("FInished {}", pm.getSendTime());
 			}
 			consumer.commitAsync();
